@@ -7,6 +7,7 @@ import com.example.demo.excel.ExcelHeaderStyle
 import com.example.demo.excel.ExcelResource
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.Workbook
+import java.lang.RuntimeException
 
 class ExcelRenderResource(
     val fields: List<String>,
@@ -14,36 +15,39 @@ class ExcelRenderResource(
     val cellStyleMap: ExcelCellStyleMap
 ) {
     companion object {
-        fun prepareExcelResource(workbook: Workbook, type: Class<*>): ExcelRenderResource {
-            val excelResource = ExcelResource::class.java
+        fun prepareExcelResource(
+            workbook: Workbook,
+            type: Class<*>,
+            dataFormatDecider: DefaultDataFormatDecider
+        ): ExcelRenderResource {
+            if (!type.isAnnotationPresent(ExcelResource::class.java)) {
+                throw RuntimeException("is not ExcelResource : ${type.name}")
+            }
+
             val excelField = ExcelField::class.java
             val excelHeaderStyle = ExcelHeaderStyle::class.java
             val excelBodyStyle = ExcelBodyStyle::class.java
 
-            val excelCellStyleMap = ExcelCellStyleMap(DefaultDataFormatDecider())
-
             val headerMap = mutableMapOf<String, String>()
             val fields = mutableListOf<String>()
 
-            val isExcelResource = type.isAnnotationPresent(excelResource)
-            val hasExcelHeaderStyle = type.isAnnotationPresent(excelHeaderStyle)
-            val hasExcelBodyStyle = type.isAnnotationPresent(excelBodyStyle)
+            val excelCellStyleMap = ExcelCellStyleMap(dataFormatDecider)
+
+            val hasDefaultExcelHeaderStyle = type.isAnnotationPresent(excelHeaderStyle)
+            val hasDefaultExcelBodyStyle = type.isAnnotationPresent(excelBodyStyle)
 
             type.declaredFields
-                .filter { field -> isExcelResource || field.isAnnotationPresent(excelField) }
                 .forEach { field ->
                     val fieldName = field.name
-                    if (field.isAnnotationPresent(excelField)) {
-                        val headerName = field.getAnnotation(excelField)
+
+                    fields.add(fieldName)
+                    headerMap[fieldName] = when {
+                        field.isAnnotationPresent(excelField) -> field.getAnnotation(excelField)
                             .headerName.ifEmpty { fieldName }
-                        headerMap[fieldName] = headerName
-                        fields.add(fieldName)
-                    } else {
-                        headerMap[fieldName] = fieldName
-                        fields.add(fieldName)
+                        else -> fieldName
                     }
 
-                    if (hasExcelHeaderStyle) {
+                    if (hasDefaultExcelHeaderStyle) {
                         excelCellStyleMap.put(
                             workbook,
                             field.type,
@@ -52,7 +56,7 @@ class ExcelRenderResource(
                         )
                     }
 
-                    if (hasExcelBodyStyle) {
+                    if (hasDefaultExcelBodyStyle) {
                         excelCellStyleMap.put(
                             workbook,
                             field.type,

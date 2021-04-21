@@ -3,6 +3,7 @@ package com.example.demo.excel
 import com.example.demo.excel.resource.ExcelCellKey
 import com.example.demo.excel.resource.ExcelRenderResource
 import com.example.demo.excel.resource.ExcelRenderResource.Companion.prepareExcelResource
+import com.example.demo.excel.resource.dataformat.DefaultDataFormatDecider
 import org.apache.poi.ss.SpreadsheetVersion
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.Sheet
@@ -30,7 +31,7 @@ abstract class AbstractExcelFile<T> {
         validate(data)
         this.workbook = SXSSFWorkbook(100)
         this.sheet = workbook.createSheet()
-        this.excelRenderResource = prepareExcelResource(workbook, type)
+        this.excelRenderResource = prepareExcelResource(workbook, type, DefaultDataFormatDecider())
         renderExcel(data)
     }
 
