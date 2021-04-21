@@ -45,11 +45,13 @@ abstract class AbstractExcelFile<T> {
 
     protected fun renderHeaders(rowIndex: Int, cellStartIndex: Int) {
         var cellIndex = cellStartIndex
-        val headerRow = sheet.createRow(rowIndex)
-        excelRenderResource.fields.forEach { fieldName ->
-            val cell = headerRow.createCell(cellIndex++)
-            cell.setCellValue(excelRenderResource.headerMap[fieldName])
-            cell.cellStyle = excelRenderResource.cellStyleMap.getCellStyleMap(ExcelCellKey.ofHeader(fieldName))
+        sheet.createRow(rowIndex).run {
+            excelRenderResource.fields.forEach { fieldName ->
+                createCell(cellIndex++).run {
+                    setCellValue(excelRenderResource.headerMap[fieldName])
+                    cellStyle = excelRenderResource.cellStyleMap.getCellStyleMap(ExcelCellKey.ofHeader(fieldName))
+                }
+            }
         }
     }
 
@@ -57,15 +59,15 @@ abstract class AbstractExcelFile<T> {
         var index = rowIndex
         dataList.forEach { data ->
             var cellIndex = cellStartIndex
-            val row = sheet.createRow(index++)
-            excelRenderResource.fields.forEach { fieldName ->
-                val field = data.javaClass.declaredFields
-                    .firstOrNull { it.name == fieldName } ?: throw RuntimeException("Invalid data")
-                field.isAccessible = true
-
-                row.createCell(cellIndex++).apply {
-                    cellStyle = excelRenderResource.cellStyleMap.getCellStyleMap(ExcelCellKey.ofBody(fieldName))
-                    setCellValue(this, field.get(data))
+            sheet.createRow(index++).run {
+                excelRenderResource.fields.forEach { fieldName ->
+                    val field = data.javaClass.declaredFields
+                        .firstOrNull { it.name == fieldName } ?: throw RuntimeException("Invalid data")
+                    field.isAccessible = true
+                    createCell(cellIndex++).run {
+                        cellStyle = excelRenderResource.cellStyleMap.getCellStyleMap(ExcelCellKey.ofBody(fieldName))
+                        setCellValue(this, field.get(data))
+                    }
                 }
             }
         }
