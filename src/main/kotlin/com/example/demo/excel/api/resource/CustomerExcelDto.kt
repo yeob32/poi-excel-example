@@ -14,13 +14,19 @@ data class CustomerExcelDto(
 
     @ExcelField("Name") val name: String,
     @ExcelField("Address") val address: String,
-    @ExcelField val age: Int,
+    @ExcelField("Age") val age: Int,
 
-    val test: Long,
+    @ExcelField("Test") val test: Long,
 
     @ExcelField("날짜") val createdAt: Instant,
 
-    val price1: Float,
-    val price2: Double,
-    val price3: Long,
+    @ExcelField("Price1") val price1: Float,
+    @ExcelField("Price2") val price2: Double,
+    @ExcelField("Price3") val price3: Long
+)
+
+@ExcelResource("asdf")
+data class CustomerDto(
+    @ExcelField("Name")  val name: String,
+    @ExcelField("Age")  val age: Int
 )
