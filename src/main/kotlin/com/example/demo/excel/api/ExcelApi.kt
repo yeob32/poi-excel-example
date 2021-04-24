@@ -4,7 +4,7 @@ import com.example.demo.excel.api.resource.CustomerExcelDto
 import com.example.demo.customer.Customer
 import com.example.demo.customer.CustomerRepository
 import com.example.demo.excel.api.resource.CustomerDto
-import com.example.demo.excel.reader.AbstractExcelReader
+import com.example.demo.excel.reader.ExcelReader
 import com.example.demo.excel.resource.ExcelReaderResource
 import com.example.demo.excel.sheet.SimpleExcelFile
 import org.springframework.web.bind.annotation.*
@@ -38,7 +38,7 @@ class ExcelApi(private val customerRepository: CustomerRepository) {
 
         val file =
             FileInputStream(File("/Users/ksy/IdeaProjects/kotlin-spring-excel/src/main/resources/static/customers.xlsx"))
-        val test = AbstractExcelReader(file, CustomerDto::class.java).read()
+        val test = ExcelReader(file, CustomerDto::class.java).read()
 
         println(test)
     }

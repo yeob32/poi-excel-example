@@ -18,10 +18,6 @@ configurations {
     }
 }
 
-noArg {
-    annotation("com.example.demo")
-}
-
 repositories {
     mavenCentral()
 }

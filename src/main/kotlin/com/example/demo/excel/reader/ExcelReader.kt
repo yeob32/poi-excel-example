@@ -1,17 +1,14 @@
 package com.example.demo.excel.reader
 
-import com.example.demo.excel.api.resource.CustomerDto
 import com.example.demo.excel.resource.ExcelReaderResource
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.util.NumberToTextConverter
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import java.io.File
-import java.io.FileInputStream
 import java.io.InputStream
 
-class AbstractExcelReader<T> {
+class ExcelReader<T> {
 
     private val sheet: Sheet
     private val excelReaderResource: ExcelReaderResource
@@ -33,7 +30,9 @@ class AbstractExcelReader<T> {
         val cons = type.getConstructor(*excelReaderResource.types.toTypedArray())
         return sheetRows.map { rowMap ->
             val values = excelReaderResource.fields.map { fieldKey ->
-                getValue(rowMap[fieldKey]!!, excelReaderResource.propertyMap[fieldKey]!!.type)
+                rowMap[fieldKey]?.run {
+                    getValue(this, excelReaderResource.propertyMap[fieldKey]!!.type)
+                }
             }
 
             cons.newInstance(*values.toTypedArray())
