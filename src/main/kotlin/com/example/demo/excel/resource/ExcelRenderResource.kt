@@ -1,17 +1,17 @@
 package com.example.demo.excel.resource
 
+import com.example.demo.excel.*
 import com.example.demo.excel.resource.dataformat.DefaultDataFormatDecider
-import com.example.demo.excel.ExcelBodyStyle
-import com.example.demo.excel.ExcelField
-import com.example.demo.excel.ExcelHeaderStyle
-import com.example.demo.excel.ExcelResource
+import com.example.demo.excel.resource.converter.ExcelConverter
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.Workbook
 import java.lang.RuntimeException
+import kotlin.reflect.KClass
 
 class ExcelRenderResource(
     val fields: List<String>,
     val headerMap: MutableMap<String, String>,
+    val converterMap: MutableMap<String, ExcelConverter>,
     val cellStyleMap: ExcelCellStyleMap
 ) {
     companion object {
@@ -24,59 +24,53 @@ class ExcelRenderResource(
                 throw RuntimeException("is not ExcelResource : ${type.name}")
             }
 
-            val excelField = ExcelField::class.java
-            val excelHeaderStyle = ExcelHeaderStyle::class.java
-            val excelBodyStyle = ExcelBodyStyle::class.java
-
+            val excelResource = type.getAnnotation(ExcelResource::class.java)
             val headerMap = mutableMapOf<String, String>()
             val fields = mutableListOf<String>()
+            val converterMap = mutableMapOf<String, ExcelConverter>()
 
             val excelCellStyleMap = ExcelCellStyleMap(dataFormatDecider)
 
-            val hasDefaultExcelHeaderStyle = type.isAnnotationPresent(excelHeaderStyle)
-            val hasDefaultExcelBodyStyle = type.isAnnotationPresent(excelBodyStyle)
-
-            type.declaredFields
-                .forEach { field ->
-                    val fieldName = field.name
-
-                    fields.add(fieldName)
-                    headerMap[fieldName] = when {
-                        field.isAnnotationPresent(excelField) -> field.getAnnotation(excelField)
-                            .headerName.ifEmpty { fieldName }
-                        else -> fieldName
-                    }
-
-                    if (hasDefaultExcelHeaderStyle) {
-                        excelCellStyleMap.put(
-                            workbook,
-                            field.type,
-                            ExcelCellKey.of(fieldName, ExcelRenderLocation.HEADER),
-                            getHeaderStyles(workbook, type.getAnnotation(excelHeaderStyle))
-                        )
-                    }
-
-                    if (hasDefaultExcelBodyStyle) {
-                        excelCellStyleMap.put(
-                            workbook,
-                            field.type,
-                            ExcelCellKey.of(fieldName, ExcelRenderLocation.BODY),
-                            getBodyStyles(workbook, type.getAnnotation(excelBodyStyle))
-                        )
-                    }
+            type.declaredFields.forEach { field ->
+                if(!field.isAnnotationPresent(ExcelField::class.java)) {
+                    throw RuntimeException("does not ExcelField : ${field.name}")
                 }
 
-            return ExcelRenderResource(fields, headerMap, excelCellStyleMap)
+                val fieldName = field.name
+                fields.add(fieldName)
+
+                if(field.isAnnotationPresent(ExcelField::class.java)) {
+                    val excelField = field.getAnnotation(ExcelField::class.java)
+                    headerMap[fieldName] = excelField.headerName
+                    converterMap[fieldName] = createObject(excelField.converter) as ExcelConverter
+                }
+
+                excelCellStyleMap.put(
+                    workbook,
+                    field.type,
+                    ExcelCellKey.ofHeader(fieldName),
+                    getHeaderStyles(workbook, excelResource.defaultHeaderStyle)
+                )
+
+                excelCellStyleMap.put(
+                    workbook,
+                    field.type,
+                    ExcelCellKey.ofBody(fieldName),
+                    getBodyStyles(workbook, excelResource.defaultBodyStyle)
+                )
+            }
+
+            return ExcelRenderResource(fields, headerMap, converterMap, excelCellStyleMap)
         }
 
-        private fun getBodyStyles(workbook: Workbook, annotation: ExcelBodyStyle): CellStyle {
+        private fun getBodyStyles(workbook: Workbook, annotation: ExcelCellStyle): CellStyle {
             val headerFont = workbook.createFont()
             val headerCellStyle = workbook.createCellStyle()
             headerCellStyle.setFont(headerFont)
             return headerCellStyle
         }
 
-        private fun getHeaderStyles(workbook: Workbook, annotation: ExcelHeaderStyle): CellStyle {
+        private fun getHeaderStyles(workbook: Workbook, annotation: ExcelCellStyle): CellStyle {
             val headerFont = workbook.createFont()
             headerFont.bold = annotation.fontBold
             headerFont.color = annotation.fontColor.getIndex()
@@ -85,4 +79,8 @@ class ExcelRenderResource(
             return headerCellStyle
         }
     }
+}
+
+inline fun <reified T : Any> createObject(clazz: KClass<out T>, vararg args: Any?): T {
+    return clazz.constructors.first().call(*args)
 }

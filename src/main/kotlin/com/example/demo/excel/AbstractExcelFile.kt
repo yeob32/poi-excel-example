@@ -3,6 +3,7 @@ package com.example.demo.excel
 import com.example.demo.excel.resource.ExcelCellKey
 import com.example.demo.excel.resource.ExcelRenderResource
 import com.example.demo.excel.resource.ExcelRenderResource.Companion.prepareExcelResource
+import com.example.demo.excel.resource.converter.ExcelConverter
 import com.example.demo.excel.resource.dataformat.DefaultDataFormatDecider
 import org.apache.poi.ss.SpreadsheetVersion
 import org.apache.poi.ss.usermodel.Cell
@@ -29,7 +30,7 @@ abstract class AbstractExcelFile<T> {
 
     protected constructor(data: List<T>, type: Class<T>) {
         validate(data)
-        this.workbook = SXSSFWorkbook(100)
+        this.workbook = SXSSFWorkbook()
         this.sheet = workbook.createSheet()
         this.excelRenderResource = prepareExcelResource(workbook, type, DefaultDataFormatDecider())
         renderExcel(data)
@@ -67,20 +68,20 @@ abstract class AbstractExcelFile<T> {
                     field.isAccessible = true
                     createCell(cellIndex++).run {
                         cellStyle = excelRenderResource.cellStyleMap.getCellStyleMap(ExcelCellKey.ofBody(fieldName))
-                        setCellValue(this, field.get(data))
+                        setCellValue(this, field.get(data), excelRenderResource.converterMap[fieldName]!!)
                     }
                 }
             }
         }
     }
 
-    private fun setCellValue(cell: Cell, value: Any?) = when (value) {
+    private fun setCellValue(cell: Cell, value: Any?, converter: ExcelConverter) = when (value) {
         is Number -> cell.setCellValue(value.toDouble())
         is Instant -> cell.setCellValue(Date.from(value))
         is Date -> cell.setCellValue(value)
         is LocalDate -> cell.setCellValue(value)
         is LocalDateTime -> cell.setCellValue(value)
-        else -> cell.setCellValue(value?.toString() ?: "")
+        else -> cell.setCellValue(converter.convert(value?.toString() ?: ""))
     }
 
     @Throws(IOException::class)

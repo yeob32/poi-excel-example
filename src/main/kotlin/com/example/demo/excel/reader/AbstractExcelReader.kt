@@ -84,18 +84,3 @@ class AbstractExcelReader<T> {
         return rowMap
     }
 }
-
-fun main() {
-    val a = ExcelReaderResource.prepareExcelResource(CustomerDto::class.java)
-    val clazz = CustomerDto::class.java
-    val cons = clazz.getConstructor(*a.types.toTypedArray())
-
-    cons.newInstance(*arrayListOf("1234", 1234).toTypedArray())
-
-
-    val file =
-        FileInputStream(File("/Users/ksy/IdeaProjects/kotlin-spring-excel/src/main/resources/static/customers.xlsx"))
-    val test = AbstractExcelReader(file, CustomerDto::class.java).read()
-    println(test.size)
-    println(test)
-}

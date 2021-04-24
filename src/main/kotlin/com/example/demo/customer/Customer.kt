@@ -20,12 +20,19 @@ class Customer(
     @Column(name = "age")
     var age: Int = 0,
 
+    @Column(name = "status")
+    var status: Status,
+
     @Column(name = "created_at")
     var createdAt: Instant
 ) {
     override fun toString(): String {
-        return "Customer(id=$id, name='$name', address='$address', age=$age)"
+        return "Customer(id=$id, name='$name', address='$address', age=$age, status=$status, createdAt=$createdAt)"
     }
+}
+
+enum class Status {
+    ACTIVE, INACTIVE
 }
 
 interface CustomerRepository : JpaRepository<Customer, Long>

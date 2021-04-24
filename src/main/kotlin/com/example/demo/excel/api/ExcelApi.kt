@@ -3,9 +3,14 @@ package com.example.demo.excel.api
 import com.example.demo.excel.api.resource.CustomerExcelDto
 import com.example.demo.customer.Customer
 import com.example.demo.customer.CustomerRepository
+import com.example.demo.excel.api.resource.CustomerDto
+import com.example.demo.excel.reader.AbstractExcelReader
+import com.example.demo.excel.resource.ExcelReaderResource
 import com.example.demo.excel.sheet.SimpleExcelFile
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.io.FileInputStream
 import javax.servlet.http.HttpServletResponse
 
 @RequestMapping(value = ["/api/excel"])
@@ -25,10 +30,17 @@ class ExcelApi(private val customerRepository: CustomerRepository) {
 
     @PostMapping("/read")
     fun readExcel(@RequestParam("file") multipartFile: MultipartFile) {
-//        val sheet = excelService.readExcel(multipartFile)
-//        val sheet2 = excelService.readExcelTest(multipartFile)
-//        println(sheet)
-//        println(sheet2)
+        val a = ExcelReaderResource.prepareExcelResource(CustomerDto::class.java)
+        val clazz = CustomerDto::class.java
+        val cons = clazz.getConstructor(*a.types.toTypedArray())
+
+        cons.newInstance(*arrayListOf("1234", 1234).toTypedArray())
+
+        val file =
+            FileInputStream(File("/Users/ksy/IdeaProjects/kotlin-spring-excel/src/main/resources/static/customers.xlsx"))
+        val test = AbstractExcelReader(file, CustomerDto::class.java).read()
+
+        println(test)
     }
 
     fun List<Customer>.toDto() = map { it.toDto() }
@@ -40,6 +52,7 @@ class ExcelApi(private val customerRepository: CustomerRepository) {
         createdAt = createdAt,
         price1 = 1234567.01230f,
         price2 = 1234567.01230,
-        price3 = 1234567
+        price3 = 1234567,
+        status = status
     )
 }
