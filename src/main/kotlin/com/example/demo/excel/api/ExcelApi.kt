@@ -19,13 +19,12 @@ class ExcelApi(private val customerRepository: CustomerRepository) {
 
     @GetMapping("/customers.xlsx")
     fun customerReport(httpServletResponse: HttpServletResponse) {
-        val customers = customerRepository.findAll().toDto()
-
-        val excel = SimpleExcelFile(customers, CustomerExcelDto::class.java)
-        excel.write(httpServletResponse.outputStream)
-
         httpServletResponse.contentType = "ms-vnd/excel"
         httpServletResponse.setHeader("Content-Disposition", "attachment;filename=test.xls")
+
+        val customers = customerRepository.findAll().toDto()
+        val excel = SimpleExcelFile(customers, CustomerExcelDto::class.java)
+        excel.write(httpServletResponse.outputStream)
     }
 
     @PostMapping("/read")
