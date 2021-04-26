@@ -1,4 +1,4 @@
-package com.example.demo.excel.resource
+package com.example.demo.excel.reader
 
 import com.example.demo.excel.ExcelField
 import com.example.demo.excel.ExcelResource
