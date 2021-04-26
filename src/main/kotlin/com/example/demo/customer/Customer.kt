@@ -24,7 +24,7 @@ class Customer(
     var status: Status,
 
     @Column(name = "created_at")
-    var createdAt: Instant
+    var createdAt: Instant,
 ) {
     override fun toString(): String {
         return "Customer(id=$id, name='$name', address='$address', age=$age, status=$status, createdAt=$createdAt)"

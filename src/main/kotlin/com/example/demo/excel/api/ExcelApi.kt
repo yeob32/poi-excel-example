@@ -42,16 +42,5 @@ class ExcelApi(private val customerRepository: CustomerRepository) {
         println(test)
     }
 
-    fun List<Customer>.toDto() = map { it.toDto() }
-    fun Customer.toDto() = CustomerExcelDto(
-        name = name,
-        address = address,
-        age = age,
-        test = 0,
-        createdAt = createdAt,
-        price1 = 1234567.01230f,
-        price2 = 1234567.01230,
-        price3 = 1234567,
-        status = status
-    )
+    private fun List<Customer>.toDto() = map { CustomerExcelDto.of(it) }
 }

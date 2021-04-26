@@ -1,5 +1,6 @@
 package com.example.demo.excel.api.resource
 
+import com.example.demo.customer.Customer
 import com.example.demo.customer.Status
 import com.example.demo.excel.*
 import com.example.demo.excel.resource.converter.DefaultExcelConverter
@@ -25,7 +26,21 @@ data class CustomerExcelDto(
     @ExcelField("Price1") val price1: Float,
     @ExcelField("Price2") val price2: Double,
     @ExcelField("Price3") val price3: Long
-)
+) {
+    companion object {
+        fun of(customer: Customer) = CustomerExcelDto(
+            name = customer.name,
+            address = customer.address,
+            age = customer.age,
+            test = 0,
+            createdAt = customer.createdAt,
+            price1 = 1234567.01230f,
+            price2 = 1234567.01230,
+            price3 = 1234567,
+            status = customer.status
+        )
+    }
+}
 
 @ExcelResource("asdf")
 data class CustomerDto(
