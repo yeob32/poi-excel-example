@@ -18,7 +18,7 @@ class ExcelReaderResource(
         fun prepareExcelResource(
             type: Class<*>,
         ): ExcelReaderResource {
-            if (!type.isAnnotationPresent(ExcelResource::class.java)) {
+            check(type.isAnnotationPresent(ExcelResource::class.java)) {
                 throw RuntimeException("is not ExcelResource : ${type.name}")
             }
 
