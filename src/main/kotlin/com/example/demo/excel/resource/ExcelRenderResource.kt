@@ -33,12 +33,10 @@ class ExcelRenderResource(
             val excelCellStyleMap = ExcelCellStyleMap(dataFormatDecider)
 
             type.declaredFields
-                .filter { field -> field.name != "Companion" }
+                // 참고 Companion 오브젝트도 declaredFields 포함되어 있다.
+//                .filter { field -> field.name != "Companion" }
+                .filter { field -> field.isAnnotationPresent(ExcelField::class.java) }
                 .forEach { field ->
-                    check(field.isAnnotationPresent(ExcelField::class.java)) {
-                        throw RuntimeException("does not ExcelField : ${field.name}")
-                    }
-
                     val fieldName = field.name
                     fields.add(fieldName)
 
